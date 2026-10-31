@@ -92,13 +92,13 @@ public class Q1Test {
           }
           int mid = end + 1;
           int root = parts[start];
-          for (int i = start + 1 ; i < end ; i++) {
+          for (int i = start + 1 ; i <= end ; i++) {
                if (parts[i] > root) {
                     mid = i;
                     break;
                }
           }
-          for (int i = mid ; i < end ; i++) {
+          for (int i = mid ; i <= end ; i++) {
                if (parts[i] < root) {
                     return false;
                }
@@ -119,14 +119,14 @@ public class Q1Test {
           }
           int mid = end;
           int root = parts[end];
-          for (int i = start ; i < end - 1 ; i++) {
+          for (int i = start ; i < end ; i++) {
                if (parts[i] > root) {
                     mid = i;
                     break;
                }
           }
 
-          for (int i = mid ; i < end - 1 ; i++) {
+          for (int i = mid ; i < end ; i++) {
                if (parts[i] < root) {
                     return false;
                }
@@ -141,12 +141,53 @@ public class Q1Test {
           return true;
      }
 
+     private static boolean sameTree(int[] inorder, int[] preorder, int[] postorder) {
+          return sameTree(
+               inorder, 0, inorder.length - 1,
+               preorder, 0, preorder.length - 1,
+               postorder, 0, postorder.length - 1
+          );
+     }
+
+     private static boolean sameTree(
+          int[] inorder, int inStart, int inEnd,
+          int[] preorder, int preStart, int preEnd,
+          int[] postorder, int postStart, int postEnd) {
+     if (inStart > inEnd) {
+          return true;
+     }
+     if (preorder[preStart] != postorder[postEnd]) {
+          return false;
+     }
+     int root = preorder[preStart];
+     int rootIndex = -1;
+     for (int i = inStart; i <= inEnd; i++) {
+          if (inorder[i] == root) {
+               rootIndex = i;
+               break;
+          }
+     }
+     if (rootIndex == -1) {
+          return false;
+     }
+     int leftSize = rootIndex - inStart;
+     return sameTree(
+               inorder, inStart, rootIndex - 1,
+               preorder, preStart + 1, preStart + leftSize,
+               postorder, postStart, postStart + leftSize - 1
+          ) &&
+          sameTree(
+               inorder, rootIndex + 1, inEnd,
+               preorder, preStart + leftSize + 1, preEnd,
+               postorder, postStart + leftSize, postEnd - 1
+          );
+     }
+
      public static String verify(String traversal1, String traversal2, String traversal3){
           if (!(isOrdered(traversal1) && isOrdered(traversal2) && isOrdered(traversal3))) {
                return "Invalid traversals";
-          } else if (traversal1.length() != traversal2.length() || traversal2.length() != traversal3.length() || traversal1.length() != traversal3.length()) {
-               return "Invalid traversals";
           }
+
           int[] parts1 = Arrays.stream(traversal1.split("-"))
                               .mapToInt(Integer::parseInt)
                               .toArray();
@@ -157,28 +198,38 @@ public class Q1Test {
                               .mapToInt(Integer::parseInt)
                               .toArray();
 
+          if (parts1.length != parts2.length || parts2.length != parts3.length || parts1.length != parts3.length) {
+               return "Invalid traversals";
+          }
+
           if (isInorder(traversal1)) {
-               if (parts2[parts2.length - 1] == parts3[0]) {
-                    return "Traversal 1 - Inorder, Traversal 2 - Postorder, Traversal 3 - Preorder"; 
-               } else if (parts2[0] == parts3[parts3.length - 1]) {
-                    return "Traversal 1 - Inorder, Traversal 2 - Preorder, Traversal 3 - Postorder"; 
-               } else {
+               if (sameTree(parts1, parts3, parts2)) {
+                    return "Traversal 1 - Inorder, Traversal 2 - Postorder, Traversal 3 - Preorder";
+               }
+               else if (sameTree(parts1, parts2, parts3)) {
+                    return "Traversal 1 - Inorder, Traversal 2 - Preorder, Traversal 3 - Postorder";
+               }
+               else {
                     return "Invalid traversals";
                }
           } else if (isInorder(traversal2)) {
-               if (parts1[parts1.length - 1] == parts3[0]) {
-                    return "Traversal 1 - Postorder, Traversal 2 - Inorder, Traversal 3 - Preorder"; 
-               } else if (parts1[0] == parts3[parts3.length - 1]) {
-                    return "Traversal 1 - Preorder, Traversal 2 - Inorder, Traversal 3 - Postorder"; 
-               } else {
+               if (sameTree(parts2, parts3, parts1)) {
+                    return "Traversal 1 - Postorder, Traversal 2 - Inorder, Traversal 3 - Preorder";
+               }
+               else if (sameTree(parts2, parts1, parts3)) {
+                    return "Traversal 1 - Preorder, Traversal 2 - Inorder, Traversal 3 - Postorder";
+               }
+               else {
                     return "Invalid traversals";
                }
           } else if (isInorder(traversal3)) {
-               if (parts1[parts1.length - 1] == parts2[0]) {
-                    return "Traversal 1 - Postorder, Traversal 2 - Preorder, Traversal 3 - Inorder"; 
-               } else if (parts1[0] == parts2[parts2.length - 1]) {
-                    return "Traversal 1 - Preorder, Traversal 2 - Postorder, Traversal 3 - Inorder"; 
-               } else {
+               if (sameTree(parts3, parts1, parts2)) {
+                    return "Traversal 1 - Preorder, Traversal 2 - Postorder, Traversal 3 - Inorder";
+               }
+               else if (sameTree(parts3, parts2, parts1)) {
+                    return "Traversal 1 - Postorder, Traversal 2 - Preorder, Traversal 3 - Inorder";
+               }
+               else {
                     return "Invalid traversals";
                }
           } else {
